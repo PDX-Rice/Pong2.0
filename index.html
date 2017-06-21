@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong2.0</title>
+    <style>
+        html{
+            background: black;
+        }
+        body {
+            text-align: center;
+            border-color: white;
+            font-family: monospace;
+            color: white;
+        }
+        embed {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1><u>Pong2.0</u></h1>
+    <canvas id="gameCanvas" width="800" height="600" style="border: 5px solid white"></canvas>
+    <script>
+        var canvas;
+        var canvasContext;
+        var ballX = 400;
+        var ballSpeedX = 5;
+        var ballY = 100;
+        var ballSpeedY = 3;
+        
+        var player1Score = 0;
+        var player2Score = 0;
+        const WINNING_SCORE = 10;
+        
+        var paddleLY = 250;
+        const PADDLE_HEIGHT = 100;
+        var paddleRY = 250;
+        
+        function calculateMousePos(evt) {
+            var rect = canvas.getBoundingClientRect();
+            var root = document.documentElement;
+            var mouseX = evt.clientX - rect.left - root.scrollLeft;
+            var mouseY = evt.clientY - rect.top - root.scrollTop;
+            return {
+                x:mouseX,
+                y:mouseY
+            };
+        }
+        
+    window.onload = function() {
+        canvas = document.getElementById('gameCanvas');
+        canvasContext = canvas.getContext('2d');
+        
+        var framesPerSecond = 60;
+        setInterval(function() {
+            moveEverything();
+            drawEverything();
+        }, 1000/framesPerSecond );
+        
+        canvas.addEventListener('mousemove',
+            function(evt) {
+                var mousePos = calculateMousePos(evt);
+                paddleLY = mousePos.y-(PADDLE_HEIGHT/2);
+            });
+    }
+    
+    function ballReset() {
+        if(player1Score >= WINNING_SCORE) {
+            player1Score = 0;
+            player2Score = 0;
+            alert("You won! Now play again...");
+        }
+        if(player2Score >= WINNING_SCORE) {
+            player1Score = 0;
+            player2Score = 0;
+            alert("You lost to a robot. This time you better win...");
+        }
+        
+        ballX = canvas.width/2;
+        ballY = canvas.height/2;
+        ballSpeedX = -ballSpeedX;
+    }
+    
+    function computerMovement() {
+        var paddleRYCenter = paddleRY + (PADDLE_HEIGHT/2);
+        if(paddleRYCenter < ballY-35) {
+            paddleRY += 6;
+        } else if(paddleRYCenter > ballY+35) {
+            paddleRY -= 6;
+        }
+    }
+        
+    function moveEverything() {
+        computerMovement();
+        
+        ballX = ballX + ballSpeedX;
+        ballY = ballY + ballSpeedY;
+        if(ballX < 0) {
+            if(ballY > paddleLY &&
+              ballY < paddleLY+PADDLE_HEIGHT) {
+                ballSpeedX = -ballSpeedX;
+                
+                var deltaY = ballY
+                    -(paddleLY+PADDLE_HEIGHT/2);
+                ballSpeedY = deltaY * 0.35;
+            } else {
+                player2Score += 1;
+                ballReset();
+            }
+        }
+        if(ballX > canvas.width) {
+            if(ballY > paddleRY &&
+              ballY < paddleRY+PADDLE_HEIGHT) {
+                ballSpeedX = -ballSpeedX;
+            } else {
+                player1Score += 1;
+                ballReset();
+            }
+        }
+        if(ballY < 0) {
+            ballSpeedY = -ballSpeedY;
+        }
+        if(ballY > canvas.height) {
+            ballSpeedY = -ballSpeedY;
+        }
+    }
+        
+    function drawEverything() {
+        //Background
+        colorRect(0,0,canvas.width,canvas.height,'black');
+        colorRect(395,0,5,800,'white');
+        //Left paddle
+        colorRect(10,paddleLY,10,100,'blue');
+        //Right paddle
+        colorRect(780,paddleRY,10,100,'red');
+        //Ball
+        colorCircle(ballX, ballY, 10)
+        canvasContext.fillStyle = 'white';
+        canvasContext.fillText(player1Score, 100,100);
+        canvasContext.fillText(player2Score, canvas.width-100,100);
+    }
+        
+    function colorCircle(centerX, centerY, radius) {
+        canvasContext.fillStyle = '#42f471';
+        canvasContext.beginPath();
+        canvasContext.arc(centerX, centerY, radius, 0,Math.PI*2, true);
+        canvasContext.fill();
+    }
+        
+    function colorRect(leftX,topY, width,height,drawColor) {
+        canvasContext.fillStyle = drawColor;
+        canvasContext.fillRect(leftX,topY, width,height);
+    }
+    </script>
+    <br>
+    <embed src="elevatorbgmusic.mp3" autostart="true">
+</body>
+</html>
